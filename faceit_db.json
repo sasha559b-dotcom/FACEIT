@@ -1,0 +1,12 @@
+{
+    "players": {},
+    "match_counter": 0,
+    "active_matches": {},
+    "queue_5v5": [],
+    "queue_2v2": [],
+    "lobby_5v5": {},
+    "lobby_2v2": {},
+    "muted": {},
+    "banned": {},
+    "bot_counter": 0
+}
