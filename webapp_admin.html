@@ -1,0 +1,1345 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>CYBER LEAGUE</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Barlow+Condensed:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg:        #0a0a0f;
+  --bg2:       #111118;
+  --bg3:       #18181f;
+  --border:    #2a2a35;
+  --orange:    #ff5500;
+  --orange2:   #ff7733;
+  --orange-glow: rgba(255,85,0,0.18);
+  --green:     #00e676;
+  --red:       #ff1744;
+  --text:      #e8e8f0;
+  --muted:     #6b6b80;
+  --gold:      #ffd700;
+  --silver:    #c0c0c0;
+  --bronze:    #cd7f32;
+  --admin:     #7c3aed;
+  --admin2:    #a855f7;
+  --admin-glow:rgba(124,58,237,0.2);
+  --news:      #0ea5e9;
+}
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+body { background:var(--bg); color:var(--text); font-family:'Barlow Condensed',sans-serif; min-height:100vh; overflow-x:hidden; }
+body::before {
+  content:''; position:fixed; inset:0; z-index:0; pointer-events:none;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  opacity:0.4;
+}
+.app { position:relative; z-index:1; max-width:480px; margin:0 auto; }
+
+/* ── HEADER ── */
+.header { background:linear-gradient(180deg,#16161e 0%,transparent 100%); padding:16px 16px 0; position:sticky; top:0; z-index:100; backdrop-filter:blur(12px); }
+.header-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+.logo { font-family:'Rajdhani',sans-serif; font-weight:700; font-size:22px; letter-spacing:3px; text-transform:uppercase; color:var(--orange); text-shadow:0 0 20px var(--orange-glow); }
+.logo span { color:var(--text); }
+.header-right { display:flex; align-items:center; gap:10px; }
+.status-dot { width:8px; height:8px; border-radius:50%; background:var(--green); box-shadow:0 0 6px var(--green); animation:blink 2s infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+.admin-key-btn {
+  width:28px; height:28px; border-radius:6px;
+  background:var(--bg2); border:1px solid var(--border);
+  display:flex; align-items:center; justify-content:center;
+  font-size:14px; cursor:pointer; transition:all .2s;
+  color:var(--muted);
+}
+.admin-key-btn.unlocked { background:var(--admin-glow); border-color:var(--admin2); color:var(--admin2); box-shadow:0 0 10px var(--admin-glow); }
+
+/* ── TABS ── */
+.tabs { display:grid; grid-template-columns:repeat(5,1fr); border-bottom:1px solid var(--border); }
+.tab { padding:10px 2px; text-align:center; font-size:10px; font-weight:700; letter-spacing:.5px; text-transform:uppercase; color:var(--muted); cursor:pointer; position:relative; transition:color .2s; border:none; background:none; }
+.tab.active { color:var(--orange); }
+.tab.active::after { content:''; position:absolute; bottom:-1px; left:10%; right:10%; height:2px; background:var(--orange); box-shadow:0 0 8px var(--orange); }
+.tab.admin-tab.active { color:var(--admin2); }
+.tab.admin-tab.active::after { background:var(--admin2); box-shadow:0 0 8px var(--admin2); }
+.tab-icon { font-size:14px; display:block; margin-bottom:2px; }
+
+/* ── PAGES ── */
+.page { display:none; padding:16px; animation:fadeIn .25s ease; }
+.page.active { display:block; }
+@keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+
+/* ── CARDS ── */
+.card { background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:14px; margin-bottom:10px; position:relative; overflow:hidden; }
+.card::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:var(--border); }
+.card.accent::before { background:var(--orange); }
+.card.green::before  { background:var(--green); }
+.card.admin-card::before { background:var(--admin2); }
+.card.news-card::before  { background:var(--news); }
+
+/* ── SECTION TITLE ── */
+.section-title { font-size:11px; font-weight:700; letter-spacing:2px; color:var(--muted); text-transform:uppercase; margin:16px 0 8px; display:flex; align-items:center; gap:8px; }
+.section-title::after { content:''; flex:1; height:1px; background:var(--border); }
+
+/* ── STATS ── */
+.stats-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.stats-grid.three { grid-template-columns:1fr 1fr 1fr; }
+.stat-card { background:var(--bg2); border:1px solid var(--border); border-radius:8px; padding:12px; position:relative; overflow:hidden; }
+.stat-card::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:var(--border); }
+.stat-card.accent::before { background:var(--orange); }
+.stat-card.green::before  { background:var(--green); }
+.stat-card.red::before    { background:var(--red); }
+.stat-label { font-size:10px; font-weight:700; letter-spacing:1.5px; color:var(--muted); text-transform:uppercase; margin-bottom:4px; }
+.stat-value { font-family:'Rajdhani',sans-serif; font-size:26px; font-weight:700; line-height:1; }
+.stat-value.orange { color:var(--orange); }
+.stat-value.green  { color:var(--green); }
+.stat-value.red    { color:var(--red); }
+.stat-sub { font-size:10px; color:var(--muted); margin-top:3px; }
+
+/* ── PROFILE ── */
+.profile-banner { background:var(--bg2); border:1px solid var(--border); border-radius:12px; overflow:hidden; margin-bottom:12px; }
+.banner-accent { height:4px; background:linear-gradient(90deg,var(--orange),var(--orange2),transparent); }
+.profile-main { padding:16px; display:flex; align-items:center; gap:14px; }
+.avatar { width:60px; height:60px; border-radius:8px; background:linear-gradient(135deg,var(--orange) 0%,#8b1a00 100%); display:flex; align-items:center; justify-content:center; font-size:26px; font-weight:800; color:#fff; flex-shrink:0; box-shadow:0 0 20px rgba(255,85,0,.3); font-family:'Rajdhani',sans-serif; position:relative; }
+.avatar-ring { position:absolute; inset:-2px; border-radius:10px; border:2px solid var(--orange); opacity:.5; }
+.profile-info { flex:1; min-width:0; }
+.profile-name { font-size:22px; font-weight:800; letter-spacing:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.profile-id { font-family:'Share Tech Mono',monospace; font-size:11px; color:var(--muted); margin-top:2px; }
+.profile-rank { display:inline-flex; align-items:center; gap:5px; margin-top:6px; padding:3px 8px; background:var(--orange-glow); border:1px solid rgba(255,85,0,.3); border-radius:4px; font-size:12px; font-weight:700; color:var(--orange2); }
+
+/* ── ELO ── */
+.elo-wrap { background:var(--bg2); border:1px solid var(--border); border-radius:8px; padding:14px; margin-bottom:8px; }
+.elo-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
+.elo-big { font-family:'Rajdhani',sans-serif; font-size:36px; font-weight:700; color:var(--orange); line-height:1; text-shadow:0 0 20px rgba(255,85,0,.4); }
+.elo-level { font-size:13px; font-weight:700; text-align:right; }
+.elo-level span { color:var(--muted); font-size:11px; display:block; }
+.progress-wrap { background:var(--bg3); border-radius:3px; height:6px; overflow:hidden; margin-bottom:5px; }
+.progress-bar { height:100%; border-radius:3px; background:linear-gradient(90deg,var(--orange),var(--orange2)); box-shadow:0 0 8px rgba(255,85,0,.5); transition:width .6s cubic-bezier(.4,0,.2,1); }
+.progress-labels { display:flex; justify-content:space-between; font-size:10px; color:var(--muted); font-family:'Share Tech Mono',monospace; }
+
+/* ── MODE TABS ── */
+.mode-tabs { display:grid; grid-template-columns:repeat(2,1fr); gap:6px; margin-bottom:12px; }
+.mode-tab { padding:8px; text-align:center; background:var(--bg2); border:1px solid var(--border); border-radius:6px; cursor:pointer; font-size:12px; font-weight:700; color:var(--muted); transition:all .2s; letter-spacing:.5px; }
+.mode-tab.active { background:var(--orange-glow); border-color:var(--orange); color:var(--orange); }
+.mode-tab-icon { font-size:16px; display:block; margin-bottom:2px; }
+
+/* ── TOP ── */
+.filter-row { display:grid; grid-template-columns:repeat(2,1fr); gap:6px; margin-bottom:12px; }
+.filter-btn { padding:8px; text-align:center; background:var(--bg2); border:1px solid var(--border); border-radius:6px; cursor:pointer; font-size:12px; font-weight:700; color:var(--muted); transition:all .2s; }
+.filter-btn.active { background:var(--orange-glow); border-color:var(--orange); color:var(--orange); }
+.top-item { background:var(--bg2); border:1px solid var(--border); border-radius:8px; padding:12px; margin-bottom:8px; display:flex; align-items:center; gap:10px; }
+.top-item.rank-1 { border-color:var(--gold); }
+.top-item.rank-2 { border-color:var(--silver); }
+.top-item.rank-3 { border-color:var(--bronze); }
+.rank-num { font-family:'Rajdhani',sans-serif; font-size:20px; font-weight:700; width:28px; text-align:center; color:var(--muted); flex-shrink:0; }
+.top-avatar { width:36px; height:36px; border-radius:6px; background:linear-gradient(135deg,var(--orange),#8b1a00); display:flex; align-items:center; justify-content:center; font-weight:800; font-size:16px; color:#fff; flex-shrink:0; font-family:'Rajdhani',sans-serif; }
+.top-info { flex:1; min-width:0; }
+.top-name { font-size:15px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.top-sub { font-size:11px; color:var(--muted); margin-top:2px; display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+.top-elo { font-family:'Rajdhani',sans-serif; font-size:22px; font-weight:700; color:var(--orange); text-align:right; flex-shrink:0; }
+.top-elo span { font-size:10px; color:var(--muted); display:block; text-align:right; }
+.lvl-badge { background:var(--orange-glow); border:1px solid rgba(255,85,0,.3); border-radius:3px; padding:1px 5px; font-size:10px; color:var(--orange2); font-weight:700; }
+
+/* ── SEARCH ── */
+.search-wrap { position:relative; margin-bottom:12px; }
+.search-input { width:100%; background:var(--bg2); border:1px solid var(--border); border-radius:8px; padding:10px 14px 10px 36px; color:var(--text); font-family:'Barlow Condensed',sans-serif; font-size:14px; font-weight:600; outline:none; transition:border-color .2s; }
+.search-input:focus { border-color:var(--orange); }
+.search-icon { position:absolute; left:11px; top:50%; transform:translateY(-50%); color:var(--muted); font-size:15px; pointer-events:none; }
+
+/* ── HOME ── */
+.home-greeting { font-size:28px; font-weight:800; letter-spacing:1px; margin-bottom:4px; }
+.home-sub { font-size:13px; color:var(--muted); margin-bottom:16px; }
+.quick-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:16px; }
+.qs-card { background:var(--bg2); border:1px solid var(--border); border-radius:8px; padding:12px; text-align:center; }
+.qs-val { font-family:'Rajdhani',sans-serif; font-size:28px; font-weight:700; color:var(--orange); }
+.qs-lbl { font-size:10px; color:var(--muted); font-weight:700; letter-spacing:1px; text-transform:uppercase; }
+.chart-wrap { background:var(--bg2); border:1px solid var(--border); border-radius:8px; padding:12px; margin-bottom:10px; }
+
+/* ── LOADING ── */
+.loading { text-align:center; padding:40px 20px; color:var(--muted); }
+.loading-spin { width:32px; height:32px; border:3px solid var(--border); border-top-color:var(--orange); border-radius:50%; animation:spin .8s linear infinite; margin:0 auto 12px; }
+@keyframes spin { to{transform:rotate(360deg)} }
+.empty { text-align:center; padding:40px 20px; }
+.empty-icon { font-size:40px; margin-bottom:8px; }
+.empty-text { color:var(--muted); font-size:14px; }
+
+/* ── PLAYER ITEMS ── */
+.player-item { background:var(--bg2); border:1px solid var(--border); border-radius:8px; padding:12px; margin-bottom:6px; display:flex; align-items:center; gap:10px; cursor:pointer; transition:border-color .2s; }
+.player-item:hover { border-color:var(--orange); }
+.player-item-info { flex:1; }
+.player-item-name { font-size:15px; font-weight:700; }
+.player-item-sub { font-size:11px; color:var(--muted); margin-top:2px; }
+.player-item-elo { font-family:'Rajdhani',sans-serif; font-size:20px; font-weight:700; color:var(--orange); }
+
+/* ── BADGES ── */
+.admin-badge {
+  display:inline-flex; align-items:center; gap:3px;
+  background:var(--admin-glow); border:1px solid rgba(124,58,237,.5);
+  border-radius:4px; padding:2px 7px; font-size:11px; font-weight:700;
+  color:var(--admin2); letter-spacing:.5px; white-space:nowrap;
+}
+.banned-badge {
+  display:inline-flex; align-items:center; gap:3px;
+  background:rgba(255,23,68,.12); border:1px solid rgba(255,23,68,.4);
+  border-radius:4px; padding:2px 7px; font-size:11px; font-weight:700;
+  color:var(--red); letter-spacing:.5px; white-space:nowrap;
+}
+.profile-badges { display:flex; flex-wrap:wrap; gap:5px; margin-top:5px; }
+
+/* ── MY PROFILE MINI ── */
+.my-mini-stats { display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px; margin-bottom:6px; }
+.my-mini-stat { background:var(--bg3); border:1px solid var(--border); border-radius:6px; padding:8px; text-align:center; }
+.my-mini-val { font-family:'Rajdhani',sans-serif; font-size:20px; font-weight:700; }
+.my-mini-lbl { font-size:9px; color:var(--muted); font-weight:700; letter-spacing:1px; text-transform:uppercase; }
+.my-setup-card { background:var(--bg2); border:1px dashed var(--border); border-radius:10px; padding:16px; text-align:center; margin-bottom:10px; }
+
+/* ════════════════════════════════════════
+   МЕДАЛИ
+════════════════════════════════════════ */
+.medals-row { display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
+.medal-item { position:relative; display:flex; flex-direction:column; align-items:center; cursor:pointer; transition:transform .15s; }
+.medal-item:active { transform:scale(.92); }
+.medal-svg { width:46px; height:52px; position:relative; display:block; }
+.medal-ribbon { width:12px; height:14px; margin:0 auto -4px; border-radius:1px 1px 0 0; }
+.medal-circle { width:42px; height:42px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:20px; border:3px solid; position:relative; box-shadow:0 3px 10px rgba(0,0,0,.5),inset 0 1px 2px rgba(255,255,255,.15); }
+.medal-circle::after { content:''; position:absolute; top:4px; left:8px; width:10px; height:5px; border-radius:50%; background:rgba(255,255,255,.22); }
+.medal-gold    .medal-ribbon { background:linear-gradient(180deg,#b8860b,#ffd700); }
+.medal-gold    .medal-circle { background:linear-gradient(135deg,#8B6914,#FFD700,#B8860B); border-color:#FFD700; box-shadow:0 3px 12px rgba(255,215,0,.4),inset 0 1px 2px rgba(255,255,255,.2); }
+.medal-silver  .medal-ribbon { background:linear-gradient(180deg,#808080,#c0c0c0); }
+.medal-silver  .medal-circle { background:linear-gradient(135deg,#707070,#E0E0E0,#A0A0A0); border-color:#C0C0C0; box-shadow:0 3px 10px rgba(180,180,180,.3),inset 0 1px 2px rgba(255,255,255,.2); }
+.medal-bronze  .medal-ribbon { background:linear-gradient(180deg,#8B4513,#CD7F32); }
+.medal-bronze  .medal-circle { background:linear-gradient(135deg,#6B3A1F,#CD7F32,#8B5513); border-color:#CD7F32; box-shadow:0 3px 10px rgba(205,127,50,.35),inset 0 1px 2px rgba(255,255,255,.15); }
+.medal-blue    .medal-ribbon { background:linear-gradient(180deg,#1565c0,#42a5f5); }
+.medal-blue    .medal-circle { background:linear-gradient(135deg,#0d47a1,#1e88e5,#1565c0); border-color:#42a5f5; box-shadow:0 3px 10px rgba(66,165,245,.35),inset 0 1px 2px rgba(255,255,255,.2); }
+.medal-red     .medal-ribbon { background:linear-gradient(180deg,#b71c1c,#ef5350); }
+.medal-red     .medal-circle { background:linear-gradient(135deg,#7f0000,#e53935,#b71c1c); border-color:#ef5350; box-shadow:0 3px 10px rgba(239,83,80,.35),inset 0 1px 2px rgba(255,255,255,.15); }
+.medal-purple  .medal-ribbon { background:linear-gradient(180deg,#4a148c,#ab47bc); }
+.medal-purple  .medal-circle { background:linear-gradient(135deg,#38006b,#8e24aa,#4a148c); border-color:#ab47bc; box-shadow:0 3px 10px rgba(171,71,188,.35),inset 0 1px 2px rgba(255,255,255,.15); }
+.medal-orange  .medal-ribbon { background:linear-gradient(180deg,#e65100,#ff9800); }
+.medal-orange  .medal-circle { background:linear-gradient(135deg,#bf360c,#fb8c00,#e65100); border-color:#ff9800; box-shadow:0 3px 10px rgba(255,152,0,.35),inset 0 1px 2px rgba(255,255,255,.15); }
+.medal-dark    .medal-ribbon { background:linear-gradient(180deg,#1a1a2e,#4a4a6a); }
+.medal-dark    .medal-circle { background:linear-gradient(135deg,#0d0d1a,#2d2d4d,#1a1a2e); border-color:#6a6a8a; box-shadow:0 3px 10px rgba(100,100,150,.3),inset 0 1px 2px rgba(255,255,255,.08); }
+.medal-item.locked .medal-circle { filter:grayscale(1) brightness(.4); border-color:var(--border) !important; box-shadow:none !important; }
+.medal-item.locked .medal-ribbon { filter:grayscale(1) brightness(.3); }
+
+/* ── MEDAL TOOLTIP ── */
+.medal-tooltip { position:fixed; z-index:9999; background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:12px 14px; min-width:180px; max-width:240px; box-shadow:0 8px 30px rgba(0,0,0,.7); pointer-events:none; opacity:0; transform:scale(.9) translateY(4px); transition:opacity .18s,transform .18s; }
+.medal-tooltip.show { opacity:1; transform:scale(1) translateY(0); }
+.medal-tooltip::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; border-radius:10px 10px 0 0; background:var(--border); }
+.medal-tooltip.tt-gold::before   { background:var(--gold); }
+.medal-tooltip.tt-silver::before { background:var(--silver); }
+.medal-tooltip.tt-bronze::before { background:var(--bronze); }
+.medal-tooltip.tt-blue::before   { background:#42a5f5; }
+.medal-tooltip.tt-red::before    { background:var(--red); }
+.medal-tooltip.tt-purple::before { background:#ab47bc; }
+.medal-tooltip.tt-orange::before { background:var(--orange); }
+.medal-tooltip.tt-dark::before   { background:#6a6a8a; }
+.tt-header { display:flex; align-items:center; gap:8px; margin-bottom:6px; }
+.tt-icon { font-size:20px; }
+.tt-name { font-size:14px; font-weight:800; letter-spacing:.5px; }
+.tt-desc { font-size:12px; color:var(--muted); line-height:1.4; }
+.tt-locked { font-size:11px; color:var(--red); margin-top:4px; font-style:italic; }
+
+/* ════════════════════════════════════════
+   НОВОСТИ
+════════════════════════════════════════ */
+.news-item { background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:14px; margin-bottom:10px; position:relative; overflow:hidden; }
+.news-item::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:var(--news); }
+.news-header { display:flex; align-items:flex-start; justify-content:space-between; gap:8px; margin-bottom:8px; }
+.news-title { font-size:16px; font-weight:800; letter-spacing:.5px; line-height:1.2; }
+.news-date { font-family:'Share Tech Mono',monospace; font-size:10px; color:var(--muted); white-space:nowrap; flex-shrink:0; margin-top:2px; }
+.news-body { font-size:13px; color:var(--muted); line-height:1.5; }
+.news-pin { display:inline-flex; align-items:center; gap:4px; background:rgba(14,165,233,.12); border:1px solid rgba(14,165,233,.3); border-radius:3px; padding:2px 7px; font-size:10px; font-weight:700; color:var(--news); margin-bottom:6px; }
+.news-tag { display:inline-flex; align-items:center; gap:4px; background:var(--orange-glow); border:1px solid rgba(255,85,0,.25); border-radius:3px; padding:2px 7px; font-size:10px; font-weight:700; color:var(--orange2); margin-top:8px; }
+
+/* ════════════════════════════════════════
+   ADMIN PANEL
+════════════════════════════════════════ */
+.admin-lock { text-align:center; padding:50px 20px; }
+.admin-lock-icon { font-size:50px; margin-bottom:16px; }
+.admin-lock-title { font-size:22px; font-weight:800; margin-bottom:6px; color:var(--admin2); }
+.admin-lock-sub { font-size:13px; color:var(--muted); margin-bottom:20px; }
+.admin-pin-input { width:100%; background:var(--bg2); border:1px solid var(--admin); border-radius:8px; padding:12px 16px; color:var(--text); font-family:'Share Tech Mono',monospace; font-size:18px; font-weight:700; text-align:center; letter-spacing:6px; outline:none; transition:box-shadow .2s; }
+.admin-pin-input:focus { box-shadow:0 0 0 2px var(--admin-glow); }
+.admin-pin-hint { font-size:11px; color:var(--muted); margin-top:6px; }
+.admin-section { margin-bottom:18px; }
+.admin-title { font-size:16px; font-weight:800; letter-spacing:1px; color:var(--admin2); margin-bottom:10px; display:flex; align-items:center; gap:8px; }
+.admin-title::after { content:''; flex:1; height:1px; background:rgba(124,58,237,.3); }
+.admin-input { width:100%; background:var(--bg3); border:1px solid var(--border); border-radius:6px; padding:9px 12px; color:var(--text); font-family:'Barlow Condensed',sans-serif; font-size:14px; font-weight:600; outline:none; transition:border-color .2s; margin-bottom:7px; }
+.admin-input:focus { border-color:var(--admin); }
+.admin-textarea { width:100%; background:var(--bg3); border:1px solid var(--border); border-radius:6px; padding:9px 12px; color:var(--text); font-family:'Barlow Condensed',sans-serif; font-size:14px; font-weight:600; outline:none; transition:border-color .2s; resize:vertical; min-height:80px; margin-bottom:7px; }
+.admin-textarea:focus { border-color:var(--admin); }
+.admin-btn { padding:10px 18px; border-radius:6px; border:none; cursor:pointer; font-family:'Barlow Condensed',sans-serif; font-size:14px; font-weight:700; letter-spacing:.5px; transition:all .2s; }
+.admin-btn.primary { background:linear-gradient(135deg,var(--admin),var(--admin2)); color:#fff; box-shadow:0 0 15px var(--admin-glow); }
+.admin-btn.primary:hover { box-shadow:0 0 25px var(--admin-glow); }
+.admin-btn.danger { background:rgba(255,23,68,.15); border:1px solid var(--red); color:var(--red); }
+.admin-btn.success { background:rgba(0,230,118,.15); border:1px solid var(--green); color:var(--green); }
+.admin-btn.small { padding:6px 12px; font-size:12px; }
+.admin-btn-row { display:flex; gap:8px; flex-wrap:wrap; }
+.admin-select { width:100%; background:var(--bg3); border:1px solid var(--border); border-radius:6px; padding:9px 12px; color:var(--text); font-family:'Barlow Condensed',sans-serif; font-size:14px; font-weight:600; outline:none; transition:border-color .2s; margin-bottom:7px; appearance:none; cursor:pointer; }
+.admin-select:focus { border-color:var(--admin); }
+.admin-medal-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:10px; }
+.admin-medal-cell { text-align:center; cursor:pointer; }
+.admin-medal-cell .medal-item { margin:0 auto; }
+.admin-player-row { background:var(--bg3); border:1px solid var(--border); border-radius:8px; padding:10px 12px; margin-bottom:6px; display:flex; align-items:center; gap:10px; }
+.admin-player-row-info { flex:1; }
+.admin-player-row-name { font-size:14px; font-weight:700; display:flex; align-items:center; gap:5px; flex-wrap:wrap; }
+.admin-player-row-id { font-family:'Share Tech Mono',monospace; font-size:10px; color:var(--muted); margin-top:2px; }
+.admin-divider { height:1px; background:rgba(124,58,237,.2); margin:4px 0 16px; }
+
+/* Ban list row */
+.ban-row { background:rgba(255,23,68,.06); border:1px solid rgba(255,23,68,.25); border-radius:6px; padding:8px 10px; margin-bottom:5px; display:flex; align-items:center; gap:8px; }
+.ban-row-name { font-size:13px; font-weight:700; flex:1; }
+.ban-row-id { font-family:'Share Tech Mono',monospace; font-size:10px; color:var(--muted); display:block; }
+
+/* Admin list row */
+.admin-list-row { background:var(--admin-glow); border:1px solid rgba(124,58,237,.35); border-radius:6px; padding:8px 10px; margin-bottom:5px; display:flex; align-items:center; gap:8px; }
+.admin-list-name { font-size:13px; font-weight:700; flex:1; }
+.admin-list-id { font-family:'Share Tech Mono',monospace; font-size:10px; color:var(--muted); display:block; }
+
+/* Toast */
+.toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(80px); background:var(--bg2); border:1px solid var(--border); border-radius:8px; padding:10px 18px; font-size:13px; font-weight:700; z-index:10000; transition:transform .3s; pointer-events:none; white-space:nowrap; box-shadow:0 4px 20px rgba(0,0,0,.5); }
+.toast.show { transform:translateX(-50%) translateY(0); }
+.toast.success { border-color:var(--green); color:var(--green); }
+.toast.error   { border-color:var(--red);   color:var(--red);   }
+.toast.info    { border-color:var(--admin2); color:var(--admin2); }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-top">
+      <div class="logo">CYBER<span>LEAGUE</span></div>
+      <div class="header-right">
+        <div class="admin-key-btn" id="admin-key-btn" onclick="toggleAdminKey()" title="Войти как администратор">🔑</div>
+        <div class="status-dot" id="status-dot"></div>
+      </div>
+    </div>
+    <!-- TAB ORDER: Главная → Профиль → Топ → Новости → Матчи/Админ -->
+    <div class="tabs">
+      <button class="tab active" onclick="showPage('home',this)">
+        <span class="tab-icon">🏠</span>ГЛАВНАЯ
+      </button>
+      <button class="tab" onclick="showPage('profile',this)">
+        <span class="tab-icon">👤</span>ПРОФИЛЬ
+      </button>
+      <button class="tab" onclick="showPage('top',this)">
+        <span class="tab-icon">🏆</span>ТОП
+      </button>
+      <button class="tab" onclick="showPage('news',this)">
+        <span class="tab-icon">📰</span>НОВОСТИ
+      </button>
+      <button class="tab admin-tab" id="admin-tab" onclick="showPage('admin',this)" style="display:none">
+        <span class="tab-icon">⚙️</span>АДМИН
+      </button>
+      <button class="tab" onclick="showPage('matches',this)" id="matches-tab">
+        <span class="tab-icon">📋</span>МАТЧИ
+      </button>
+    </div>
+  </div>
+
+  <!-- ══ HOME ══ -->
+  <div class="page active" id="page-home">
+    <div class="home-greeting">Добро пожаловать!</div>
+    <div class="home-sub">Актуальная статистика вашей Faceit-лиги</div>
+    <div class="quick-stats">
+      <div class="qs-card"><div class="qs-val" id="qs-players">—</div><div class="qs-lbl">Игроков</div></div>
+      <div class="qs-card"><div class="qs-val" id="qs-matches">—</div><div class="qs-lbl">Матчей</div></div>
+      <div class="qs-card"><div class="qs-val" id="qs-active">—</div><div class="qs-lbl">Активно</div></div>
+    </div>
+    <div class="section-title">Топ 3 игрока (5v5)</div>
+    <div id="home-top3"><div class="loading"><div class="loading-spin"></div>Загрузка...</div></div>
+    <div class="section-title">Последние игроки</div>
+    <div id="home-recent"><div class="loading"><div class="loading-spin"></div></div></div>
+  </div>
+
+  <!-- ══ ПРОФИЛЬ ══ -->
+  <div class="page" id="page-profile">
+
+    <!-- МОЙ ПРОФИЛЬ -->
+    <div id="my-profile-section">
+      <div class="section-title" style="margin-top:0">Мой профиль</div>
+      <div id="my-profile-content">
+        <div class="loading" style="padding:20px"><div class="loading-spin" style="width:22px;height:22px;border-width:2px"></div></div>
+      </div>
+    </div>
+
+    <!-- ПОИСК ДРУГОГО ИГРОКА -->
+    <div id="profile-search-view">
+      <div class="section-title">Найти другого игрока по Game ID</div>
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input class="search-input" id="profile-search" type="text" placeholder="Никнейм или Game ID..." oninput="filterPlayers(this.value)">
+      </div>
+      <div id="players-list"><div class="loading"><div class="loading-spin"></div>Загрузка...</div></div>
+    </div>
+
+    <!-- ДЕТАЛЬНЫЙ ПРОСМОТР ИГРОКА -->
+    <div id="profile-detail-view" style="display:none">
+      <button onclick="backToSearch()" style="background:none;border:1px solid var(--border);border-radius:6px;color:var(--muted);padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;margin-bottom:12px;letter-spacing:1px;">← НАЗАД</button>
+      <div class="profile-banner">
+        <div class="banner-accent"></div>
+        <div class="profile-main">
+          <div class="avatar"><div class="avatar-ring"></div><span id="p-avatar">?</span></div>
+          <div class="profile-info">
+            <div class="profile-name" id="p-name">—</div>
+            <div class="profile-badges">
+              <span class="admin-badge" id="p-admin-badge" style="display:none">⚙️ ADMIN</span>
+              <span class="banned-badge" id="p-banned-badge" style="display:none">🚫 БАН</span>
+            </div>
+            <div class="profile-id" id="p-id">—</div>
+            <div class="profile-rank" id="p-rank">—</div>
+          </div>
+        </div>
+      </div>
+      <div class="mode-tabs">
+        <div class="mode-tab active" onclick="setMode('5v5',this)"><span class="mode-tab-icon">🎮</span>5v5</div>
+        <div class="mode-tab" onclick="setMode('2v2',this)"><span class="mode-tab-icon">⚡</span>2v2</div>
+      </div>
+      <div class="elo-wrap">
+        <div class="elo-header">
+          <div class="elo-big" id="p-elo">—</div>
+          <div class="elo-level"><span id="p-lvl-next">—</span><span id="p-elo-need"></span></div>
+        </div>
+        <div class="progress-wrap"><div class="progress-bar" id="p-progress" style="width:0%"></div></div>
+        <div class="progress-labels">
+          <span id="p-lvl-from">LVL 1</span><span id="p-lvl-pct">0%</span><span id="p-lvl-to">LVL 2</span>
+        </div>
+      </div>
+      <div class="section-title">Медали</div>
+      <div id="p-medals-wrap">
+        <div class="medals-row" id="p-medals"></div>
+      </div>
+      <div class="section-title">Статистика режима</div>
+      <div class="stats-grid">
+        <div class="stat-card accent"><div class="stat-label">ELO</div><div class="stat-value orange" id="m-elo">—</div></div>
+        <div class="stat-card"><div class="stat-label">Уровень</div><div class="stat-value" id="m-lvl" style="font-size:14px;padding-top:6px">—</div></div>
+        <div class="stat-card green"><div class="stat-label">Победы</div><div class="stat-value green" id="m-wins">—</div></div>
+        <div class="stat-card red"><div class="stat-label">Поражения</div><div class="stat-value red" id="m-losses">—</div></div>
+        <div class="stat-card accent"><div class="stat-label">Матчей</div><div class="stat-value orange" id="m-games">—</div></div>
+        <div class="stat-card"><div class="stat-label">Avg WR</div><div class="stat-value" id="m-wr">—</div></div>
+      </div>
+      <div class="section-title">ELO по режимам</div>
+      <div class="chart-wrap"><canvas id="eloChart" height="120"></canvas></div>
+    </div>
+  </div>
+
+  <!-- ══ TOP ══ -->
+  <div class="page" id="page-top">
+    <div class="filter-row">
+      <button class="filter-btn active" onclick="setTopMode('5v5',this)">🎮 5v5</button>
+      <button class="filter-btn" onclick="setTopMode('2v2',this)">⚡ 2v2</button>
+    </div>
+    <div id="top-list"><div class="loading"><div class="loading-spin"></div>Загрузка...</div></div>
+  </div>
+
+  <!-- ══ НОВОСТИ ══ -->
+  <div class="page" id="page-news">
+    <div id="news-list"><div class="loading"><div class="loading-spin"></div>Загрузка новостей...</div></div>
+  </div>
+
+  <!-- ══ МАТЧИ ══ -->
+  <div class="page" id="page-matches">
+    <div class="section-title">Активные матчи</div>
+    <div id="matches-list"><div class="loading"><div class="loading-spin"></div>Загрузка...</div></div>
+  </div>
+
+  <!-- ══ ADMIN ══ -->
+  <div class="page" id="page-admin">
+    <!-- LOCK SCREEN -->
+    <div id="admin-lock-screen">
+      <div class="admin-lock">
+        <div class="admin-lock-icon">🔐</div>
+        <div class="admin-lock-title">ADMIN PANEL</div>
+        <div class="admin-lock-sub">Введите PIN-код администратора</div>
+        <input class="admin-pin-input" id="admin-pin" type="password" maxlength="6"
+               placeholder="• • • • • •" oninput="checkAdminPin(this.value)">
+        <div class="admin-pin-hint">Неверный PIN — доступ заблокирован</div>
+      </div>
+    </div>
+
+    <!-- ADMIN CONTENT -->
+    <div id="admin-content" style="display:none">
+
+      <!-- ─ Публикация новостей ─ -->
+      <div class="admin-section">
+        <div class="admin-title">📰 Опубликовать новость</div>
+        <input class="admin-input" id="news-title-inp" placeholder="Заголовок новости...">
+        <textarea class="admin-textarea" id="news-body-inp" placeholder="Текст новости..."></textarea>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+          <input type="checkbox" id="news-pin-chk" style="accent-color:var(--admin2)">
+          <label for="news-pin-chk" style="font-size:13px;color:var(--muted);cursor:pointer">📌 Закрепить</label>
+          <input class="admin-input" id="news-tag-inp" placeholder="Тег (ОБНОВЛЕНИЕ, МАТЧ...)" style="flex:1;margin-bottom:0">
+        </div>
+        <div class="admin-btn-row">
+          <button class="admin-btn primary" onclick="publishNews()">Опубликовать</button>
+          <button class="admin-btn danger small" onclick="clearNewsForm()">Очистить</button>
+        </div>
+      </div>
+
+      <div class="admin-divider"></div>
+
+      <!-- ─ БАН ИГРОКОВ ─ -->
+      <div class="admin-section">
+        <div class="admin-title">🚫 Бан игроков</div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:8px;letter-spacing:1px;text-transform:uppercase">Выберите игрока</div>
+        <select class="admin-select" id="ban-player-sel">
+          <option value="">— Выберите игрока —</option>
+        </select>
+        <div class="admin-btn-row" style="margin-bottom:12px">
+          <button class="admin-btn danger" onclick="doBanPlayer()">🚫 Забанить</button>
+          <button class="admin-btn success" onclick="doUnbanPlayer()">✅ Разбанить</button>
+        </div>
+        <div style="font-size:11px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">Забаненные игроки</div>
+        <div id="admin-ban-list"><div style="font-size:12px;color:var(--muted);font-style:italic">Нет забаненных игроков</div></div>
+      </div>
+
+      <div class="admin-divider"></div>
+
+      <!-- ─ ПРАВА АДМИНИСТРАТОРА ─ -->
+      <div class="admin-section">
+        <div class="admin-title">⚙️ Администраторы</div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:8px;letter-spacing:1px;text-transform:uppercase">Выберите игрока</div>
+        <select class="admin-select" id="admin-rights-sel">
+          <option value="">— Выберите игрока —</option>
+        </select>
+        <div class="admin-btn-row" style="margin-bottom:12px">
+          <button class="admin-btn primary" onclick="doGrantAdmin()">⚙️ Выдать права</button>
+          <button class="admin-btn danger small" onclick="doRevokeAdmin()">❌ Забрать</button>
+        </div>
+        <div style="font-size:11px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">Список администраторов</div>
+        <div id="admin-admins-list"><div style="font-size:12px;color:var(--muted);font-style:italic">Нет назначенных администраторов</div></div>
+      </div>
+
+      <div class="admin-divider"></div>
+
+      <!-- ─ Управление медалями ─ -->
+      <div class="admin-section">
+        <div class="admin-title">🏅 Управление медалями</div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:8px;letter-spacing:1px;text-transform:uppercase">Выберите игрока</div>
+        <select class="admin-select" id="medal-player-sel">
+          <option value="">— Выберите игрока —</option>
+        </select>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:8px;letter-spacing:1px;text-transform:uppercase">Выберите медаль</div>
+        <div class="admin-medal-grid" id="admin-medal-grid"></div>
+        <div style="font-size:12px;color:var(--admin2);margin-bottom:10px;" id="selected-medal-label">Медаль не выбрана</div>
+        <div class="admin-btn-row">
+          <button class="admin-btn success" onclick="grantMedal()">✅ Выдать медаль</button>
+          <button class="admin-btn danger"  onclick="revokeMedal()">❌ Забрать медаль</button>
+        </div>
+      </div>
+
+      <div class="admin-divider"></div>
+
+      <!-- ─ Все игроки ─ -->
+      <div class="admin-section">
+        <div class="admin-title">👥 Игроки и медали</div>
+        <div id="admin-players-list"><div class="loading" style="padding:20px"><div class="loading-spin" style="width:22px;height:22px;border-width:2px"></div></div></div>
+      </div>
+
+      <div class="admin-divider"></div>
+
+      <!-- ─ Управление новостями ─ -->
+      <div class="admin-section">
+        <div class="admin-title">🗑️ Опубликованные новости</div>
+        <div id="admin-news-list"></div>
+      </div>
+
+      <div style="margin-top:8px">
+        <button class="admin-btn danger small" onclick="adminLogout()">🔓 Выйти из панели</button>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<!-- TOOLTIP (медаль) -->
+<div class="medal-tooltip" id="medal-tooltip">
+  <div class="tt-header">
+    <span class="tt-icon" id="tt-icon">🏅</span>
+    <span class="tt-name" id="tt-name">Медаль</span>
+  </div>
+  <div class="tt-desc" id="tt-desc">Описание медали</div>
+  <div class="tt-locked" id="tt-locked" style="display:none">🔒 Не получена</div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ════════════════════════════════════════════════
+//  КОНФИГ
+// ════════════════════════════════════════════════
+const API_URL   = window.location.origin;
+const ADMIN_PIN = "1488"; // ← ИЗМЕНИТЬ НА СВОЙ PIN
+
+// ════════════════════════════════════════════════
+//  МЕДАЛИ — каталог
+// ════════════════════════════════════════════════
+const MEDALS_CATALOG = [
+  { id:'first_blood',   icon:'🔪', name:'First Blood',     color:'red',    desc:'Первый в лиге кто пролил кровь — победил в дебютном матче сезона.' },
+  { id:'shadow_hunter', icon:'🌑', name:'Shadow Hunter',   color:'dark',   desc:'Мастер теней. Сыграл более 50 матчей в Season of Shadows.' },
+  { id:'champion',      icon:'👑', name:'Чемпион',         color:'gold',   desc:'Победитель сезонного турнира CyberLeague. Заслужил корону!' },
+  { id:'top_fragger',   icon:'💀', name:'Top Fragger',     color:'red',    desc:'Лучший фраггер лиги по статистике за сезон.' },
+  { id:'clutch_king',   icon:'🎯', name:'Clutch King',     color:'orange', desc:'Победил в 10+ клатчах 1v2 и выше. Нервы из стали.' },
+  { id:'veteran',       icon:'⚔️', name:'Ветеран',         color:'silver', desc:'Участник лиги с самого первого сезона.' },
+  { id:'dominator',     icon:'🔥', name:'Dominator',       color:'orange', desc:'WR выше 70% за любой из сезонов.' },
+  { id:'legend',        icon:'⭐', name:'Легенда',         color:'gold',   desc:'Достиг максимального ELO (LVL 10) в любом режиме.' },
+  { id:'duelist',       icon:'🗡️', name:'Дуэлянт',         color:'blue',   desc:'Победил в 20+ матчах режима 2v2.' },
+  { id:'consistent',    icon:'📈', name:'Стабильный',      color:'blue',   desc:'Удерживал WR выше 55% на протяжении 3 недель подряд.' },
+  { id:'ironwall',      icon:'🛡️', name:'Iron Wall',       color:'silver', desc:'Ни разу не проиграл в домашних играх. Непробиваемая оборона.' },
+  { id:'teamplayer',    icon:'🤝', name:'Team Player',     color:'purple', desc:'Помог команде в самых тяжёлых матчах. Командный дух.' },
+  { id:'comeback',      icon:'💫', name:'Comeback',        color:'purple', desc:'Выиграл матч после отставания 4 раунда. Никогда не сдавался.' },
+  { id:'shadow_lord',   icon:'🖤', name:'Shadow Lord',     color:'dark',   desc:'Особая медаль организатора. Выдаётся только лично администратором.' },
+  { id:'bronze_s1',     icon:'🥉', name:'Бронза S1',       color:'bronze', desc:'Финишировал в топ-50% по итогам Season I.' },
+  { id:'silver_s1',     icon:'🥈', name:'Серебро S1',      color:'silver', desc:'Финишировал в топ-20% по итогам Season I.' },
+];
+
+// ════════════════════════════════════════════════
+//  ХРАНИЛИЩЕ (localStorage)
+// ════════════════════════════════════════════════
+function getPlayerMedals(extId) {
+  try { return JSON.parse(localStorage.getItem('medals_' + extId) || '[]'); } catch { return []; }
+}
+function setPlayerMedals(extId, medals) {
+  localStorage.setItem('medals_' + extId, JSON.stringify(medals));
+}
+function getNews() {
+  try { return JSON.parse(localStorage.getItem('cl_news') || '[]'); } catch { return []; }
+}
+function saveNews(arr) { localStorage.setItem('cl_news', JSON.stringify(arr)); }
+
+// ─ МОЙ ПРОФИЛЬ ─
+const MY_ID_KEY = 'cl_my_id';
+function getMyId() { return localStorage.getItem(MY_ID_KEY) || ''; }
+function setMyId(id) { localStorage.setItem(MY_ID_KEY, id); }
+function clearMyId() { localStorage.removeItem(MY_ID_KEY); renderMyProfile(); }
+
+// ─ БАН ─
+function getBannedPlayers() {
+  try { return JSON.parse(localStorage.getItem('cl_banned') || '[]'); } catch { return []; }
+}
+function saveBannedPlayers(arr) { localStorage.setItem('cl_banned', JSON.stringify(arr)); }
+
+// ─ ПРАВА АДМИНА ─
+function getAdminPlayers() {
+  try { return JSON.parse(localStorage.getItem('cl_admins') || '[]'); } catch { return []; }
+}
+function saveAdminPlayers(arr) { localStorage.setItem('cl_admins', JSON.stringify(arr)); }
+
+// ════════════════════════════════════════════════
+//  УТИЛИТЫ
+// ════════════════════════════════════════════════
+function getLvl(elo) {
+  const levels=[{lvl:10,label:"🏆 LVL 10",min:2001,max:9999},{lvl:9,label:"🔴 LVL 9",min:1751,max:2000},{lvl:8,label:"🔴 LVL 8",min:1531,max:1750},{lvl:7,label:"🟠 LVL 7",min:1351,max:1530},{lvl:6,label:"🟠 LVL 6",min:1201,max:1350},{lvl:5,label:"🟡 LVL 5",min:1051,max:1200},{lvl:4,label:"🟡 LVL 4",min:901,max:1050},{lvl:3,label:"🟢 LVL 3",min:751,max:900},{lvl:2,label:"🟢 LVL 2",min:501,max:750},{lvl:1,label:"⚪ LVL 1",min:0,max:500}];
+  return levels.find(l=>elo>=l.min)||levels[levels.length-1];
+}
+function getProgress(elo) {
+  const lvl=getLvl(elo);
+  if(lvl.lvl===10) return {pct:100,need:0};
+  const range=lvl.max-lvl.min+1;
+  return {pct:Math.round((elo-lvl.min)/range*100),need:lvl.max-elo+1};
+}
+async function apiFetch(path) {
+  const r=await fetch(API_URL+path);
+  if(!r.ok) throw new Error('HTTP '+r.status);
+  return r.json();
+}
+function fmtDate(ts) {
+  const d=new Date(ts);
+  return d.toLocaleDateString('ru',{day:'2-digit',month:'2-digit',year:'2-digit'})+' '+d.toLocaleTimeString('ru',{hour:'2-digit',minute:'2-digit'});
+}
+function escHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// ── TOAST ──
+let toastTimer;
+function showToast(msg, type='info') {
+  const el=document.getElementById('toast');
+  el.textContent=msg; el.className='toast show '+type;
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>el.classList.remove('show'),2800);
+}
+
+// ════════════════════════════════════════════════
+//  МЕДАЛИ — рендер
+// ════════════════════════════════════════════════
+function renderMedalHTML(medal, locked=false, small=false) {
+  const sz = small ? 'style="width:32px;height:36px"' : '';
+  const csz = small ? 'style="width:28px;height:28px;font-size:14px"' : '';
+  const rsz = small ? 'style="width:8px;height:10px"' : '';
+  return `
+    <div class="medal-item${locked?' locked':''}" onclick="showMedalTooltip(event,'${medal.id}',${locked})">
+      <div class="medal-ribbon medal-${medal.color}" ${rsz}></div>
+      <div class="medal-circle medal-${medal.color}" ${csz}>${medal.icon}</div>
+    </div>`;
+}
+
+// ── Tooltip ──
+let tooltipTimer;
+function showMedalTooltip(e, medalId, locked=false) {
+  e.stopPropagation();
+  const medal = MEDALS_CATALOG.find(m=>m.id===medalId);
+  if(!medal) return;
+  const tt = document.getElementById('medal-tooltip');
+  document.getElementById('tt-icon').textContent = medal.icon;
+  document.getElementById('tt-name').textContent = medal.name;
+  document.getElementById('tt-desc').textContent = medal.desc;
+  const lockedEl = document.getElementById('tt-locked');
+  lockedEl.style.display = locked ? 'block' : 'none';
+  tt.className = 'medal-tooltip tt-'+medal.color;
+  const rect = e.currentTarget.getBoundingClientRect();
+  const ttW=240, ttH=100;
+  let left = rect.left + rect.width/2 - ttW/2;
+  let top  = rect.top - ttH - 10;
+  if(left < 6) left=6;
+  if(left+ttW > window.innerWidth-6) left=window.innerWidth-ttW-6;
+  if(top < 10) top = rect.bottom + 8;
+  tt.style.left = left+'px';
+  tt.style.top  = top+'px';
+  tt.classList.add('show');
+  clearTimeout(tooltipTimer);
+  tooltipTimer = setTimeout(()=>tt.classList.remove('show'), 3000);
+}
+document.addEventListener('click', ()=>document.getElementById('medal-tooltip').classList.remove('show'));
+
+// ════════════════════════════════════════════════
+//  СОСТОЯНИЕ
+// ════════════════════════════════════════════════
+let allPlayers=[], topCache={}, currentPlayer=null, currentMode='5v5', eloChart=null;
+let adminUnlocked=false, selectedMedalId=null;
+
+// ════════════════════════════════════════════════
+//  НАВИГАЦИЯ
+// ════════════════════════════════════════════════
+function showPage(name, tabEl) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  if(tabEl) tabEl.classList.add('active');
+  if(name==='news') renderNews();
+  if(name==='matches') loadMatches();
+}
+
+// ════════════════════════════════════════════════
+//  МОЙ ПРОФИЛЬ
+// ════════════════════════════════════════════════
+function renderMyProfile() {
+  const myId = getMyId();
+  const el = document.getElementById('my-profile-content');
+  if (!el) return;
+
+  if (!myId) {
+    el.innerHTML = `<div class="my-setup-card">
+      <div style="font-size:24px;margin-bottom:8px">👤</div>
+      <div style="font-size:14px;font-weight:700;margin-bottom:4px">Установи свой профиль</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:12px">Введи свой Game ID, чтобы видеть свою статистику</div>
+      <div style="display:flex;gap:8px">
+        <input class="admin-input" id="my-id-input" placeholder="Game ID..." style="margin-bottom:0;flex:1;background:var(--bg3)">
+        <button onclick="saveMyId()" style="background:linear-gradient(135deg,var(--orange),var(--orange2));border:none;border-radius:6px;color:#fff;padding:9px 16px;font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap">Сохранить</button>
+      </div>
+    </div>`;
+    return;
+  }
+
+  const p = allPlayers.find(x => String(x.external_id) === String(myId));
+  if (!p) {
+    el.innerHTML = `<div class="card" style="border-color:var(--red);margin-bottom:10px">
+      <div style="font-size:13px;color:var(--red);margin-bottom:6px">⚠️ Игрок не найден (ID: ${escHtml(myId)})</div>
+      <button onclick="clearMyId()" style="background:none;border:none;color:var(--muted);font-size:12px;cursor:pointer;text-decoration:underline">Сменить Game ID</button>
+    </div>`;
+    return;
+  }
+
+  const elo = p.elo_5v5 || p.elo || 1000;
+  const lvl = getLvl(elo);
+  const isAdmin = getAdminPlayers().includes(String(p.external_id));
+  const isBanned = getBannedPlayers().includes(String(p.external_id));
+  const medals = getPlayerMedals(p.external_id);
+  const medalHtml = medals.slice(0,6).map(id => {
+    const m = MEDALS_CATALOG.find(x=>x.id===id);
+    return m ? `<span style="font-size:18px;cursor:pointer" title="${m.name}" onclick="showMedalTooltip(event,'${m.id}',false)">${m.icon}</span>` : '';
+  }).join('');
+
+  el.innerHTML = `<div class="profile-banner" style="cursor:pointer;margin-bottom:8px" onclick="openPlayer('${p.external_id}')">
+    <div class="banner-accent"></div>
+    <div class="profile-main">
+      <div class="avatar"><div class="avatar-ring"></div><span>${p.nickname[0].toUpperCase()}</span></div>
+      <div class="profile-info">
+        <div class="profile-name">${escHtml(p.nickname)}</div>
+        <div class="profile-badges" style="margin-top:4px">
+          ${isAdmin ? '<span class="admin-badge">⚙️ ADMIN</span>' : ''}
+          ${isBanned ? '<span class="banned-badge">🚫 БАН</span>' : ''}
+        </div>
+        <div class="profile-id">GAME ID: ${p.external_id}</div>
+        <div class="profile-rank">${lvl.label}</div>
+        ${medals.length ? `<div style="display:flex;gap:4px;margin-top:6px;flex-wrap:wrap">${medalHtml}</div>` : ''}
+      </div>
+    </div>
+  </div>
+  <div class="my-mini-stats">
+    <div class="my-mini-stat"><div class="my-mini-val" style="color:var(--orange)">${p.elo_5v5||1000}</div><div class="my-mini-lbl">ELO 5v5</div></div>
+    <div class="my-mini-stat"><div class="my-mini-val" style="color:var(--green)">${p.wins_5v5||0}</div><div class="my-mini-lbl">Победы</div></div>
+    <div class="my-mini-stat"><div class="my-mini-val" style="color:var(--red)">${p.losses_5v5||0}</div><div class="my-mini-lbl">Пораж.</div></div>
+  </div>
+  <button onclick="clearMyId()" style="background:none;border:none;color:var(--muted);font-size:11px;cursor:pointer;text-decoration:underline;padding:0;margin-bottom:4px">Сменить профиль</button>`;
+}
+
+function saveMyId() {
+  const inp = document.getElementById('my-id-input');
+  if (!inp) return;
+  const val = inp.value.trim();
+  if (!val) { showToast('⚠️ Введи Game ID', 'error'); return; }
+  setMyId(val);
+  renderMyProfile();
+  showToast('✅ Профиль установлен', 'success');
+}
+
+// ════════════════════════════════════════════════
+//  INIT
+// ════════════════════════════════════════════════
+async function loadAll() {
+  try {
+    await apiFetch('/health');
+    document.getElementById('status-dot').style.background='var(--green)';
+  } catch(e) {
+    document.getElementById('status-dot').style.background='var(--red)';
+    showApiError(); return;
+  }
+  try {
+    allPlayers=await apiFetch('/api/players');
+    renderPlayersList(allPlayers);
+    renderHomePage();
+    populateAdminPlayerSelect();
+    populateAdminBanSelect();
+    populateAdminAdminSelect();
+    renderMyProfile();
+  } catch(e){ console.error(e); }
+  await loadTop('5v5');
+  try {
+    const s=await apiFetch('/api/stats');
+    document.getElementById('qs-players').textContent=s.total_players;
+    document.getElementById('qs-matches').textContent=s.total_matches;
+    document.getElementById('qs-active').textContent=s.active_matches;
+  } catch(e){}
+  renderAdminMedalGrid();
+  renderNews();
+  renderAdminNewsList();
+}
+
+function showApiError() {
+  const msg=`<div class="card" style="border-color:var(--red)"><div style="font-size:14px;font-weight:700;color:var(--red);margin-bottom:8px">⚠️ API недоступен</div><div style="font-size:12px;color:var(--muted);line-height:1.5">Бот не запущен или API_URL не задан.</div></div>`;
+  ['home-top3','players-list','top-list','matches-list'].forEach(id=>document.getElementById(id).innerHTML=msg);
+  document.getElementById('home-recent').innerHTML='';
+  renderMyProfile();
+}
+
+// ════════════════════════════════════════════════
+//  HOME
+// ════════════════════════════════════════════════
+function renderHomePage() {
+  const top3=[...allPlayers].sort((a,b)=>b.elo_5v5-a.elo_5v5).slice(0,3);
+  const medals=['🥇','🥈','🥉'];
+  document.getElementById('home-top3').innerHTML=top3.map((p,i)=>`
+    <div class="player-item" onclick="openPlayer('${p.external_id}')">
+      <div style="font-size:22px;width:28px;text-align:center">${medals[i]}</div>
+      <div class="top-avatar">${p.nickname[0].toUpperCase()}</div>
+      <div class="player-item-info">
+        <div class="player-item-name">${p.nickname}</div>
+        <div class="player-item-sub">${getLvl(p.elo_5v5).label}</div>
+      </div>
+      <div class="player-item-elo">${p.elo_5v5}<br><span style="font-size:10px;color:var(--muted)">ELO</span></div>
+    </div>`).join('');
+
+  const recent=[...allPlayers].slice(-3).reverse();
+  document.getElementById('home-recent').innerHTML=recent.map(p=>`
+    <div class="player-item" onclick="openPlayer('${p.external_id}')">
+      <div class="top-avatar">${p.nickname[0].toUpperCase()}</div>
+      <div class="player-item-info">
+        <div class="player-item-name">${p.nickname}</div>
+        <div class="player-item-sub">ID: ${p.external_id} · ${p.wins+p.losses} матчей</div>
+      </div>
+      <div class="player-item-elo">${p.elo}<br><span style="font-size:10px;color:var(--muted)">ELO</span></div>
+    </div>`).join('')||'<div class="empty"><div class="empty-text">Нет игроков</div></div>';
+}
+
+// ════════════════════════════════════════════════
+//  НОВОСТИ
+// ════════════════════════════════════════════════
+function renderNews() {
+  const news=getNews();
+  const el=document.getElementById('news-list');
+  if(!news.length){
+    el.innerHTML='<div class="empty"><div class="empty-icon">📰</div><div class="empty-text">Новостей пока нет</div></div>';
+    return;
+  }
+  const pinned=news.filter(n=>n.pinned);
+  const regular=news.filter(n=>!n.pinned);
+  const sorted=[...pinned,...regular];
+  el.innerHTML=sorted.map(n=>`
+    <div class="news-item">
+      ${n.pinned?'<div class="news-pin">📌 ЗАКРЕПЛЕНО</div>':''}
+      <div class="news-header">
+        <div class="news-title">${escHtml(n.title)}</div>
+        <div class="news-date">${fmtDate(n.ts)}</div>
+      </div>
+      <div class="news-body">${escHtml(n.body)}</div>
+      ${n.tag?`<div class="news-tag">${escHtml(n.tag)}</div>`:''}
+    </div>`).join('');
+}
+
+// ════════════════════════════════════════════════
+//  PROFILE
+// ════════════════════════════════════════════════
+function renderPlayersList(players) {
+  if(!players.length){
+    document.getElementById('players-list').innerHTML='<div class="empty"><div class="empty-icon">👤</div><div class="empty-text">Нет игроков</div></div>';
+    return;
+  }
+  const banned = getBannedPlayers();
+  const admins = getAdminPlayers();
+  document.getElementById('players-list').innerHTML=players.map(p=>{
+    const isBanned = banned.includes(String(p.external_id));
+    const isAdmin  = admins.includes(String(p.external_id));
+    return `<div class="player-item" onclick="openPlayer('${p.external_id}')">
+      <div class="top-avatar">${p.nickname[0].toUpperCase()}</div>
+      <div class="player-item-info">
+        <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap">
+          <div class="player-item-name">${p.nickname}</div>
+          ${isAdmin ? '<span class="admin-badge" style="font-size:9px;padding:1px 5px">⚙️ ADMIN</span>' : ''}
+          ${isBanned ? '<span class="banned-badge" style="font-size:9px;padding:1px 5px">🚫 БАН</span>' : ''}
+        </div>
+        <div class="player-item-sub">ID: ${p.external_id} · ${getLvl(p.elo_5v5).label}</div>
+      </div>
+      <div class="player-item-elo">${p.elo}<br><span style="font-size:10px;color:var(--muted)">ELO</span></div>
+    </div>`;
+  }).join('');
+}
+
+function filterPlayers(q){
+  const lq=q.toLowerCase();
+  renderPlayersList(allPlayers.filter(p=>p.nickname.toLowerCase().includes(lq)||String(p.external_id).toLowerCase().includes(lq)));
+}
+
+function openPlayer(extId){
+  const p=allPlayers.find(x=>String(x.external_id)===String(extId));
+  if(!p) return;
+  currentPlayer=p; currentMode='5v5';
+  document.querySelectorAll('.mode-tab').forEach((t,i)=>t.classList.toggle('active',i===0));
+  document.getElementById('profile-search-view').style.display='none';
+  document.getElementById('profile-detail-view').style.display='block';
+  document.getElementById('my-profile-section').style.display='none';
+  renderProfile(p,'5v5');
+  // Профиль — второй таб (index 1) в новом порядке
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab')[1].classList.add('active');
+  document.querySelectorAll('.page').forEach(pg=>pg.classList.remove('active'));
+  document.getElementById('page-profile').classList.add('active');
+}
+
+function backToSearch(){
+  document.getElementById('profile-search-view').style.display='block';
+  document.getElementById('profile-detail-view').style.display='none';
+  document.getElementById('my-profile-section').style.display='block';
+  currentPlayer=null;
+}
+
+function renderProfile(p,mode){
+  document.getElementById('p-avatar').textContent=p.nickname[0].toUpperCase();
+  document.getElementById('p-name').textContent=p.nickname;
+  document.getElementById('p-id').textContent='GAME ID: '+p.external_id;
+
+  // Отметки администратора и бана
+  const isAdmin = getAdminPlayers().includes(String(p.external_id));
+  const isBanned = getBannedPlayers().includes(String(p.external_id));
+  document.getElementById('p-admin-badge').style.display  = isAdmin  ? 'inline-flex' : 'none';
+  document.getElementById('p-banned-badge').style.display = isBanned ? 'inline-flex' : 'none';
+
+  const elo=p['elo_'+mode]||p.elo||1000;
+  const wins=p['wins_'+mode]||0; const losses=p['losses_'+mode]||0;
+  const avg=p['avg_'+mode]||0; const lvl=getLvl(elo); const prog=getProgress(elo);
+  document.getElementById('p-rank').textContent=lvl.label;
+  document.getElementById('p-elo').textContent=elo;
+  document.getElementById('p-progress').style.width=prog.pct+'%';
+  document.getElementById('p-lvl-pct').textContent=prog.pct+'%';
+  document.getElementById('p-lvl-from').textContent='LVL '+lvl.lvl;
+  if(lvl.lvl<10){document.getElementById('p-lvl-to').textContent='LVL '+(lvl.lvl+1);document.getElementById('p-lvl-next').textContent='До LVL '+(lvl.lvl+1);document.getElementById('p-elo-need').textContent=prog.need+' ELO';}
+  else{document.getElementById('p-lvl-to').textContent='MAX';document.getElementById('p-lvl-next').textContent='Максимум';document.getElementById('p-elo-need').textContent='';}
+  document.getElementById('m-elo').textContent=elo;
+  document.getElementById('m-lvl').textContent=lvl.label;
+  document.getElementById('m-wins').textContent=wins;
+  document.getElementById('m-losses').textContent=losses;
+  document.getElementById('m-games').textContent=wins+losses;
+  document.getElementById('m-wr').textContent=avg.toFixed(1)+'%';
+
+  const playerMedals=getPlayerMedals(p.external_id);
+  const medalRow=document.getElementById('p-medals');
+  if(!playerMedals.length){
+    medalRow.innerHTML='<div style="font-size:12px;color:var(--muted);font-style:italic;padding:6px 0">Медалей пока нет</div>';
+  } else {
+    medalRow.innerHTML=MEDALS_CATALOG.map(m=>{
+      const has=playerMedals.includes(m.id);
+      return renderMedalHTML(m,!has);
+    }).join('');
+  }
+
+  if(eloChart) eloChart.destroy();
+  const ctx=document.getElementById('eloChart').getContext('2d');
+  eloChart=new Chart(ctx,{type:'bar',data:{labels:['5v5','2v2'],datasets:[{data:[p.elo_5v5||1000,p.elo_2v2||1000],backgroundColor:['rgba(255,85,0,.7)','rgba(255,119,51,.5)'],borderColor:['#ff5500','#ff7733'],borderWidth:1,borderRadius:4}]},options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{display:false}},scales:{x:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#6b6b80',font:{family:'Barlow Condensed',size:12,weight:'700'}}},y:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#6b6b80',font:{family:'Share Tech Mono',size:10}},min:800}}}});
+}
+
+function setMode(mode,el){
+  document.querySelectorAll('.mode-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  if(currentPlayer) renderProfile(currentPlayer,mode);
+}
+
+// ════════════════════════════════════════════════
+//  TOP
+// ════════════════════════════════════════════════
+async function loadTop(mode){
+  if(topCache[mode]){renderTop(topCache[mode],mode);return;}
+  document.getElementById('top-list').innerHTML='<div class="loading"><div class="loading-spin"></div>Загрузка...</div>';
+  try{const data=await apiFetch('/api/top?mode='+mode);topCache[mode]=data;renderTop(data,mode);}
+  catch(e){document.getElementById('top-list').innerHTML='<div class="empty"><div class="empty-icon">⚠️</div><div class="empty-text">Ошибка</div></div>';}
+}
+
+function renderTop(players,mode){
+  const medals=['🥇','🥈','🥉'];
+  document.getElementById('top-list').innerHTML=players.map((p,i)=>{
+    const rank=i+1; const total=p.wins+p.losses; const wr=total?Math.round(p.wins/total*100):0;
+    const lvl=getLvl(p.elo); const num=rank<=3?medals[rank-1]:rank; const botTag=p.is_bot?' 🤖':'';
+    const playerMedals=getPlayerMedals(p.external_id);
+    const medalHtml=playerMedals.length?'<div style="display:flex;gap:3px;margin-top:4px">'+playerMedals.slice(0,4).map(id=>{const m=MEDALS_CATALOG.find(x=>x.id===id);return m?`<span title="${m.name}" onclick="event.stopPropagation();showMedalTooltip(event,'${m.id}',false)" style="cursor:pointer;font-size:14px">${m.icon}</span>`:''}).join('')+'</div>':'';
+    const isAdmin  = getAdminPlayers().includes(String(p.external_id));
+    const isBanned = getBannedPlayers().includes(String(p.external_id));
+    return `<div class="top-item rank-${rank}" onclick="openPlayer('${p.external_id}')">
+      <div class="rank-num">${num}</div>
+      <div class="top-avatar">${p.nickname[0].toUpperCase()}</div>
+      <div class="top-info">
+        <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap">
+          <div class="top-name">${p.nickname}${botTag}</div>
+          ${isAdmin ? '<span class="admin-badge" style="font-size:9px;padding:1px 5px">⚙️</span>' : ''}
+          ${isBanned ? '<span class="banned-badge" style="font-size:9px;padding:1px 5px">🚫</span>' : ''}
+        </div>
+        <div class="top-sub"><span class="lvl-badge">${lvl.label}</span><span>WR ${wr}% · ${total} игр</span></div>
+        ${medalHtml}
+      </div>
+      <div class="top-elo">${p.elo}<span>ELO</span></div>
+    </div>`;
+  }).join('')||'<div class="empty"><div class="empty-icon">🏆</div><div class="empty-text">Рейтинг пуст</div></div>';
+}
+
+function setTopMode(mode,el){
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active'); loadTop(mode);
+}
+
+// ════════════════════════════════════════════════
+//  MATCHES
+// ════════════════════════════════════════════════
+async function loadMatches(){
+  document.getElementById('matches-list').innerHTML='<div class="loading"><div class="loading-spin"></div>Загрузка...</div>';
+  try{
+    const s=await apiFetch('/api/stats');
+    if(!s.active_matches){document.getElementById('matches-list').innerHTML='<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">Нет активных матчей</div></div>';}
+    else{document.getElementById('matches-list').innerHTML=`<div class="card accent"><div class="stat-label">Активных матчей</div><div class="stat-value orange">${s.active_matches}</div><div class="stat-sub">Всего сыграно: ${s.total_matches}</div></div><div class="empty" style="padding:20px"><div class="empty-text">Детали доступны в Telegram</div></div>`;}
+  }catch(e){document.getElementById('matches-list').innerHTML='<div class="empty"><div class="empty-icon">⚠️</div><div class="empty-text">Ошибка</div></div>';}
+}
+
+// ════════════════════════════════════════════════
+//  ADMIN
+// ════════════════════════════════════════════════
+function toggleAdminKey(){
+  if(adminUnlocked){ adminLogout(); return; }
+  showPage('admin', document.getElementById('admin-tab'));
+  document.getElementById('admin-tab').style.display='';
+  document.getElementById('matches-tab').style.display='none';
+}
+
+function checkAdminPin(val){
+  if(val===ADMIN_PIN){
+    adminUnlocked=true;
+    document.getElementById('admin-lock-screen').style.display='none';
+    document.getElementById('admin-content').style.display='block';
+    document.getElementById('admin-key-btn').classList.add('unlocked');
+    document.getElementById('admin-key-btn').textContent='🔓';
+    renderAdminPlayerList();
+    renderAdminNewsList();
+    renderAdminMedalGrid();
+    populateAdminPlayerSelect();
+    populateAdminBanSelect();
+    populateAdminAdminSelect();
+    renderAdminBanList();
+    renderAdminAdminsList();
+    showToast('✅ Добро пожаловать, Администратор', 'success');
+  } else if(val.length>=6){
+    document.getElementById('admin-pin').value='';
+    showToast('❌ Неверный PIN-код', 'error');
+  }
+}
+
+function adminLogout(){
+  adminUnlocked=false;
+  document.getElementById('admin-lock-screen').style.display='block';
+  document.getElementById('admin-content').style.display='none';
+  document.getElementById('admin-pin').value='';
+  document.getElementById('admin-key-btn').classList.remove('unlocked');
+  document.getElementById('admin-key-btn').textContent='🔑';
+  document.getElementById('admin-tab').style.display='none';
+  document.getElementById('matches-tab').style.display='';
+  showPage('home',document.querySelectorAll('.tab')[0]);
+  showToast('🔒 Выход из панели', 'info');
+}
+
+// ── БАН ──
+function doBanPlayer() {
+  const extId = document.getElementById('ban-player-sel').value;
+  if (!extId) { showToast('⚠️ Выберите игрока', 'error'); return; }
+  const list = getBannedPlayers();
+  if (list.includes(String(extId))) { showToast('ℹ️ Игрок уже забанен', 'info'); return; }
+  list.push(String(extId));
+  saveBannedPlayers(list);
+  const p = allPlayers.find(x=>String(x.external_id)===String(extId));
+  showToast(`🚫 ${p?.nickname||extId} забанен`, 'error');
+  renderAdminBanList();
+  renderAdminPlayerList();
+}
+
+function doUnbanPlayer() {
+  const extId = document.getElementById('ban-player-sel').value;
+  if (!extId) { showToast('⚠️ Выберите игрока', 'error'); return; }
+  saveBannedPlayers(getBannedPlayers().filter(id=>id!==String(extId)));
+  const p = allPlayers.find(x=>String(x.external_id)===String(extId));
+  showToast(`✅ ${p?.nickname||extId} разбанен`, 'success');
+  renderAdminBanList();
+  renderAdminPlayerList();
+}
+
+function unbanDirect(extId) {
+  saveBannedPlayers(getBannedPlayers().filter(id=>id!==String(extId)));
+  const p = allPlayers.find(x=>String(x.external_id)===String(extId));
+  showToast(`✅ ${p?.nickname||extId} разбанен`, 'success');
+  renderAdminBanList();
+  renderAdminPlayerList();
+}
+
+function renderAdminBanList() {
+  const banned = getBannedPlayers();
+  const el = document.getElementById('admin-ban-list');
+  if (!el) return;
+  if (!banned.length) {
+    el.innerHTML = '<div style="font-size:12px;color:var(--muted);font-style:italic">Нет забаненных игроков</div>';
+    return;
+  }
+  el.innerHTML = banned.map(id => {
+    const p = allPlayers.find(x=>String(x.external_id)===String(id));
+    return `<div class="ban-row">
+      <div>
+        <div class="ban-row-name">🚫 ${escHtml(p?.nickname||'Неизвестный')}</div>
+        <span class="ban-row-id">ID: ${id}</span>
+      </div>
+      <button class="admin-btn success small" onclick="unbanDirect('${id}')">Разбанить</button>
+    </div>`;
+  }).join('');
+}
+
+// ── ПРАВА АДМИНИСТРАТОРА ──
+function doGrantAdmin() {
+  const extId = document.getElementById('admin-rights-sel').value;
+  if (!extId) { showToast('⚠️ Выберите игрока', 'error'); return; }
+  const list = getAdminPlayers();
+  if (list.includes(String(extId))) { showToast('ℹ️ Уже администратор', 'info'); return; }
+  list.push(String(extId));
+  saveAdminPlayers(list);
+  const p = allPlayers.find(x=>String(x.external_id)===String(extId));
+  showToast(`⚙️ ${p?.nickname||extId} стал администратором`, 'success');
+  renderAdminAdminsList();
+  renderAdminPlayerList();
+  renderMyProfile();
+}
+
+function doRevokeAdmin() {
+  const extId = document.getElementById('admin-rights-sel').value;
+  if (!extId) { showToast('⚠️ Выберите игрока', 'error'); return; }
+  saveAdminPlayers(getAdminPlayers().filter(id=>id!==String(extId)));
+  const p = allPlayers.find(x=>String(x.external_id)===String(extId));
+  showToast(`❌ Права админа убраны у ${p?.nickname||extId}`, 'info');
+  renderAdminAdminsList();
+  renderAdminPlayerList();
+  renderMyProfile();
+}
+
+function revokeAdminDirect(extId) {
+  saveAdminPlayers(getAdminPlayers().filter(id=>id!==String(extId)));
+  const p = allPlayers.find(x=>String(x.external_id)===String(extId));
+  showToast(`❌ Права админа убраны у ${p?.nickname||extId}`, 'info');
+  renderAdminAdminsList();
+  renderAdminPlayerList();
+  renderMyProfile();
+}
+
+function renderAdminAdminsList() {
+  const admins = getAdminPlayers();
+  const el = document.getElementById('admin-admins-list');
+  if (!el) return;
+  if (!admins.length) {
+    el.innerHTML = '<div style="font-size:12px;color:var(--muted);font-style:italic">Нет назначенных администраторов</div>';
+    return;
+  }
+  el.innerHTML = admins.map(id => {
+    const p = allPlayers.find(x=>String(x.external_id)===String(id));
+    return `<div class="admin-list-row">
+      <div>
+        <div class="admin-list-name">⚙️ ${escHtml(p?.nickname||'Неизвестный')}</div>
+        <span class="admin-list-id">ID: ${id}</span>
+      </div>
+      <button class="admin-btn danger small" onclick="revokeAdminDirect('${id}')">Убрать</button>
+    </div>`;
+  }).join('');
+}
+
+// ── Заполнение селектов ──
+function populateAdminPlayerSelect() {
+  const sel = document.getElementById('medal-player-sel');
+  if (!sel) return;
+  sel.innerHTML = '<option value="">— Выберите игрока —</option>' +
+    allPlayers.map(p=>`<option value="${p.external_id}">${p.nickname} (${p.external_id})</option>`).join('');
+}
+
+function populateAdminBanSelect() {
+  const sel = document.getElementById('ban-player-sel');
+  if (!sel) return;
+  sel.innerHTML = '<option value="">— Выберите игрока —</option>' +
+    allPlayers.map(p=>`<option value="${p.external_id}">${p.nickname} (${p.external_id})</option>`).join('');
+}
+
+function populateAdminAdminSelect() {
+  const sel = document.getElementById('admin-rights-sel');
+  if (!sel) return;
+  sel.innerHTML = '<option value="">— Выберите игрока —</option>' +
+    allPlayers.map(p=>`<option value="${p.external_id}">${p.nickname} (${p.external_id})</option>`).join('');
+}
+
+// ── Новости ──
+function publishNews(){
+  const title=document.getElementById('news-title-inp').value.trim();
+  const body=document.getElementById('news-body-inp').value.trim();
+  const tag=document.getElementById('news-tag-inp').value.trim();
+  const pinned=document.getElementById('news-pin-chk').checked;
+  if(!title||!body){showToast('⚠️ Заполни заголовок и текст','error');return;}
+  const news=getNews();
+  news.unshift({id:Date.now(),title,body,tag,pinned,ts:Date.now()});
+  saveNews(news);
+  clearNewsForm();
+  renderAdminNewsList();
+  showToast('📰 Новость опубликована!','success');
+}
+
+function clearNewsForm(){
+  document.getElementById('news-title-inp').value='';
+  document.getElementById('news-body-inp').value='';
+  document.getElementById('news-tag-inp').value='';
+  document.getElementById('news-pin-chk').checked=false;
+}
+
+function deleteNews(id){
+  saveNews(getNews().filter(n=>n.id!==id));
+  renderAdminNewsList();
+  showToast('🗑️ Новость удалена','info');
+}
+
+function renderAdminNewsList(){
+  const news=getNews();
+  const el=document.getElementById('admin-news-list');
+  if(!news.length){el.innerHTML='<div style="font-size:12px;color:var(--muted);padding:8px 0;font-style:italic">Новостей нет</div>';return;}
+  el.innerHTML=news.map(n=>`
+    <div style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:10px;margin-bottom:6px;display:flex;align-items:flex-start;gap:8px">
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:700">${escHtml(n.title)}</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:2px">${fmtDate(n.ts)}${n.pinned?' · 📌':''}</div>
+      </div>
+      <button class="admin-btn danger small" onclick="deleteNews(${n.id})">✕</button>
+    </div>`).join('');
+}
+
+// ── Медали ──
+function renderAdminMedalGrid(){
+  document.getElementById('admin-medal-grid').innerHTML=MEDALS_CATALOG.map(m=>`
+    <div class="admin-medal-cell" onclick="selectMedal('${m.id}')">
+      <div id="amc-${m.id}" class="medal-item">
+        <div class="medal-ribbon medal-${m.color}"></div>
+        <div class="medal-circle medal-${m.color}" style="width:34px;height:34px;font-size:16px">${m.icon}</div>
+      </div>
+      <div style="font-size:9px;color:var(--muted);margin-top:3px;text-align:center;line-height:1.2">${m.name}</div>
+    </div>`).join('');
+}
+
+function selectMedal(id){
+  selectedMedalId=id;
+  const m=MEDALS_CATALOG.find(x=>x.id===id);
+  document.getElementById('selected-medal-label').textContent='Выбрана: '+m.icon+' '+m.name;
+  document.querySelectorAll('.admin-medal-cell').forEach(el=>{
+    el.style.outline = el.querySelector('.medal-item')?.id==='amc-'+id ? '2px solid var(--admin2)' : 'none';
+    el.style.borderRadius='6px';
+  });
+}
+
+function grantMedal(){
+  const extId=document.getElementById('medal-player-sel').value;
+  if(!extId){showToast('⚠️ Выберите игрока','error');return;}
+  if(!selectedMedalId){showToast('⚠️ Выберите медаль','error');return;}
+  const medals=getPlayerMedals(extId);
+  if(medals.includes(selectedMedalId)){showToast('Игрок уже имеет эту медаль','info');return;}
+  medals.push(selectedMedalId);
+  setPlayerMedals(extId,medals);
+  renderAdminPlayerList();
+  const m=MEDALS_CATALOG.find(x=>x.id===selectedMedalId);
+  const p=allPlayers.find(x=>String(x.external_id)===String(extId));
+  showToast(`✅ ${m.icon} ${m.name} → ${p.nickname}`,'success');
+}
+
+function revokeMedal(){
+  const extId=document.getElementById('medal-player-sel').value;
+  if(!extId){showToast('⚠️ Выберите игрока','error');return;}
+  if(!selectedMedalId){showToast('⚠️ Выберите медаль','error');return;}
+  const medals=getPlayerMedals(extId).filter(id=>id!==selectedMedalId);
+  setPlayerMedals(extId,medals);
+  renderAdminPlayerList();
+  const m=MEDALS_CATALOG.find(x=>x.id===selectedMedalId);
+  const p=allPlayers.find(x=>String(x.external_id)===String(extId));
+  showToast(`❌ ${m.icon} забрана у ${p.nickname}`,'info');
+}
+
+function renderAdminPlayerList(){
+  const el=document.getElementById('admin-players-list');
+  if(!allPlayers.length){el.innerHTML='<div style="font-size:12px;color:var(--muted);font-style:italic">Нет игроков</div>';return;}
+  const banned = getBannedPlayers();
+  const admins = getAdminPlayers();
+  el.innerHTML=allPlayers.map(p=>{
+    const pm=getPlayerMedals(p.external_id);
+    const medalIcons=pm.map(id=>{const m=MEDALS_CATALOG.find(x=>x.id===id);return m?m.icon:'';}).join(' ');
+    const isBanned = banned.includes(String(p.external_id));
+    const isAdmin  = admins.includes(String(p.external_id));
+    return `<div class="admin-player-row">
+      <div class="top-avatar" style="width:30px;height:30px;font-size:14px">${p.nickname[0].toUpperCase()}</div>
+      <div class="admin-player-row-info">
+        <div class="admin-player-row-name">
+          ${p.nickname}
+          ${isAdmin  ? '<span class="admin-badge" style="font-size:9px;padding:1px 5px">⚙️ ADMIN</span>' : ''}
+          ${isBanned ? '<span class="banned-badge" style="font-size:9px;padding:1px 5px">🚫 БАН</span>' : ''}
+        </div>
+        <div class="admin-player-row-id">${p.external_id} · ${medalIcons||'нет медалей'}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ════════════════════════════════════════════════
+//  BOOT
+// ════════════════════════════════════════════════
+window.addEventListener('DOMContentLoaded', loadAll);
+</script>
+</body>
+</html>
