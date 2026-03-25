@@ -42,7 +42,7 @@ ELO_MIN      = 100
 BOT_ID_START = -100000
 
 NOT_REGISTERED_MSG = (
-    "❌ <b>Вы не зарегистрированы!</b>\n\n"
+    "❌ <b>Вы не зарегистрированы!Регистрация происходит в лс бота @CyberLegue_bot</b>\n\n"
     "Для регистрации введите:\n"
     "<code>/reg GAME_ID Никнейм</code>\n\n"
     "Пример: <code>/reg 33333 ProPlayer</code>"
@@ -807,7 +807,7 @@ async def reg_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
         user_mention = update.message.from_user.mention_html()
         await update.message.reply_text(
             f"{user_mention} ⚠️ Регистрация происходит строго в личке у бота!\n\n"
-            f"👉 Напиши боту в личку: @Fasikkkk_bot\n"
+            f"👉 Напиши боту в личку: @CyberLegue_bot\n"
             f"И отправь там команду:\n"
             f"<code>/reg GAME_ID Никнейм</code>",
             parse_mode=ParseMode.HTML
