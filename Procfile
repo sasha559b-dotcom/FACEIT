@@ -1,1 +1,0 @@
-web: python Faceit.py
