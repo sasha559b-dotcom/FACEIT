@@ -9,7 +9,7 @@ import ProfilePage from './pages/ProfilePage'
 import LeaderboardPage from './pages/LeaderboardPage'
 import AdminPage from './pages/AdminPage'
 import MatchPage from './pages/MatchPage'
-import Layout from './components/Layout'
+import Layout from "./componets/Layout"
 
 export default function App() {
   const { user, login, setInitData, setTelegramId } = useStore()
