@@ -4,7 +4,8 @@ import json
 import os
 from urllib.parse import unquote
 from fastapi import HTTPException, Header, Depends
-from database import get_db
+import sqlite3
+from database import get_db, DB_PATH
 
 BOT_TOKEN = os.getenv("BOT_TOKEN", "YOUR_BOT_TOKEN_HERE")
 
@@ -29,6 +30,7 @@ def verify_telegram_init_data(init_data: str) -> dict:
         secret_key = hmac.new(b"WebAppData", BOT_TOKEN.encode(), hashlib.sha256).digest()
         computed = hmac.new(secret_key, data_check_string.encode(), hashlib.sha256).hexdigest()
 
+        # In dev mode, skip hash check if BOT_TOKEN is placeholder
         if BOT_TOKEN != "YOUR_BOT_TOKEN_HERE":
             if computed != parsed.get("hash", ""):
                 raise HTTPException(status_code=401, detail="Invalid Telegram data")
@@ -38,6 +40,7 @@ def verify_telegram_init_data(init_data: str) -> dict:
     except HTTPException:
         raise
     except Exception as e:
+        # Dev fallback: parse user from raw JSON
         try:
             return json.loads(init_data)
         except:
@@ -64,14 +67,11 @@ def get_current_user(
     if not telegram_id:
         raise HTTPException(status_code=401, detail="Not authenticated")
 
-    import psycopg2
-    from psycopg2.extras import RealDictCursor
-    import os
-    conn = psycopg2.connect(os.getenv("DATABASE_URL"), cursor_factory=RealDictCursor)
-    cur = conn.cursor()
-    cur.execute("SELECT * FROM users WHERE telegram_id = %s", (telegram_id,))
-    user = cur.fetchone()
-    cur.close()
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    user = conn.execute(
+        "SELECT * FROM users WHERE telegram_id = ?", (telegram_id,)
+    ).fetchone()
     conn.close()
 
     if not user:
