@@ -1,14 +1,11 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Header, Depends
 from pydantic import BaseModel
-import psycopg2
-from psycopg2.extras import RealDictCursor
-import os
+import sqlite3
+import json
+from database import get_db, DB_PATH
 from auth_utils import verify_telegram_init_data, get_current_user
 
 router = APIRouter()
-
-def get_conn():
-    return psycopg2.connect(os.getenv("DATABASE_URL"), cursor_factory=RealDictCursor)
 
 class RegisterRequest(BaseModel):
     username: str
@@ -22,8 +19,9 @@ class LoginRequest(BaseModel):
 def register(req: RegisterRequest):
     try:
         tg_user = verify_telegram_init_data(req.init_data)
-        telegram_id = str(tg_user.get("id", ""))
+        telegram_id = str(tg_user.get("id", req.init_data if req.init_data.isdigit() else ""))
     except:
+        # Dev mode: use init_data as telegram_id directly
         telegram_id = req.init_data if req.init_data.isdigit() else str(hash(req.init_data))[:10]
 
     if not telegram_id:
@@ -39,31 +37,46 @@ def register(req: RegisterRequest):
     if not game_id:
         raise HTTPException(400, "Game ID is required")
 
-    conn = get_conn(); cur = conn.cursor()
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
 
-    cur.execute("SELECT id FROM users WHERE telegram_id = %s", (telegram_id,))
-    if cur.fetchone():
-        conn.close(); raise HTTPException(400, "Already registered")
+    # Check existing
+    existing = conn.execute(
+        "SELECT id FROM users WHERE telegram_id = ?", (telegram_id,)
+    ).fetchone()
+    if existing:
+        conn.close()
+        raise HTTPException(400, "Already registered")
 
-    cur.execute("SELECT id FROM users WHERE username = %s", (username,))
-    if cur.fetchone():
-        conn.close(); raise HTTPException(400, "Username already taken")
+    # Check username taken
+    taken = conn.execute(
+        "SELECT id FROM users WHERE username = ?", (username,)
+    ).fetchone()
+    if taken:
+        conn.close()
+        raise HTTPException(400, "Username already taken")
 
-    cur.execute("SELECT COUNT(*) as cnt FROM users")
-    count = cur.fetchone()["cnt"]
+    # Check if first user - make them developer
+    count = conn.execute("SELECT COUNT(*) as cnt FROM users").fetchone()["cnt"]
     role = "developer" if count == 0 else "player"
+
     colors = ["#6366f1", "#ec4899", "#f59e0b", "#10b981", "#3b82f6", "#ef4444", "#8b5cf6"]
     color = colors[count % len(colors)]
 
-    cur.execute(
-        "INSERT INTO users (telegram_id, username, game_id, role, avatar_color) VALUES (%s, %s, %s, %s, %s)",
+    conn.execute(
+        """INSERT INTO users (telegram_id, username, game_id, role, avatar_color)
+           VALUES (?, ?, ?, ?, ?)""",
         (telegram_id, username, game_id, role, color)
     )
     conn.commit()
 
-    cur.execute("SELECT * FROM users WHERE telegram_id = %s", (telegram_id,))
-    user = cur.fetchone(); conn.close()
+    user = conn.execute(
+        "SELECT * FROM users WHERE telegram_id = ?", (telegram_id,)
+    ).fetchone()
+    conn.close()
+
     return {"success": True, "user": dict(user)}
+
 
 @router.post("/login")
 def login(req: LoginRequest):
@@ -73,13 +86,18 @@ def login(req: LoginRequest):
     except:
         telegram_id = req.init_data if req.init_data.isdigit() else str(hash(req.init_data))[:10]
 
-    conn = get_conn(); cur = conn.cursor()
-    cur.execute("SELECT * FROM users WHERE telegram_id = %s", (telegram_id,))
-    user = cur.fetchone(); conn.close()
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    user = conn.execute(
+        "SELECT * FROM users WHERE telegram_id = ?", (telegram_id,)
+    ).fetchone()
+    conn.close()
 
     if not user:
         return {"registered": False}
+
     return {"registered": True, "user": dict(user)}
+
 
 @router.get("/me")
 def me(current_user: dict = Depends(get_current_user)):
